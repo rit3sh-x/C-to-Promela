@@ -60,6 +60,7 @@ frontend/
 
 - Node.js (v18 or later)
 - npm or yarn
+- OpenRouter API key (for code conversion functionality)
 
 ### Installation
 
@@ -76,14 +77,22 @@ frontend/
    yarn install
    ```
 
-3. Run the development server:
+3. Set up environment variables:
+   - Copy `.env.example` to `.env.local`:
+     ```bash
+     cp .env.example .env.local
+     ```
+   - Replace `your_openrouter_api_key` with your actual OpenRouter API key in `.env.local`
+   - Enable training in your OpenRouter account settings at https://openrouter.ai/settings/privacy for optimal conversion results
+
+4. Run the development server:
    ```bash
    npm run dev
    # or
    yarn dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
 ## Usage
 

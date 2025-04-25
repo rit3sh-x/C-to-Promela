@@ -13,7 +13,6 @@ export default function Editor({ value, onChange, readOnly = false }: EditorProp
   const [code, setCode] = useState<string>(value);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Wrap onChange with useCallback to stabilize the reference
   const stableOnChange = useCallback(onChange, [onChange]);
 
   useEffect(() => {

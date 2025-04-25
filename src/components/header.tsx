@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from '@/components/ui/button';
 import { ClipboardCopy, Play, Github } from 'lucide-react';
 
@@ -25,6 +27,7 @@ export default function Header({ onCopy, onConvert, isConverting = false }: Head
           onClick={onConvert}
           disabled={isConverting}
           size="sm"
+          className='cursor-pointer'
         >
           {isConverting ? (
             <>

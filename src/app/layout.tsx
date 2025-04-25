@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
+import RecoilProvider from "@/components/providers/recoil-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,9 +15,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <link rel="icon" type="image/svg+xml" href="/logo.svg"/>
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/logo.svg"/>
+      </head>
       <body className="w-screen h-screen">
-        {children}
+        <RecoilProvider>{children}</RecoilProvider>
         <Toaster/>
       </body>
     </html>

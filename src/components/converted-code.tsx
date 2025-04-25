@@ -6,82 +6,64 @@ import Header from '@/components/header';
 import OutputPanel from '@/components/output-panel';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { toast } from 'sonner';
+import { useRecoilState } from 'recoil';
+import { promelaCode, cCode } from '@/utils/store';
 
 export default function CodeConverter() {
-  const [cCode, setCCode] = useState("");
-  const [promelaCode, setPromelaCode] = useState("");
-  const [isConverting, setIsConverting] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [promelaCodeState, setPromelaCodeState] = useRecoilState(promelaCode);
+  const [cCodeState, setCCodeState] = useRecoilState(cCode);
 
   const handleCodeChange = (value: string | undefined) => {
-    setCCode(value || '');
+    setCCodeState(value || '');
+  };
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+
+    const res = await fetch("/api/convert", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt: cCodeState }),
+    });
+
+    if (!res.ok) throw new Error(res.statusText);
+
+    const data = res.body;
+    if (!data) return;
+
+    const reader = data.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+    let accumulatedCode = promelaCodeState;
+
+    while (!done) {
+      const { value, done: doneReading } = await reader.read();
+      done = doneReading;
+      const chunkValue = decoder.decode(value, { stream: true });
+      const cleanedChunk = chunkValue.replace(/```(promela)?/g, '').replace(/^\s*promela\s*\n?/gm, '');
+      if (cleanedChunk) {
+        accumulatedCode += cleanedChunk;
+        setPromelaCodeState(accumulatedCode);
+      }
+    }
+    setIsLoading(false);
   };
 
   const handleCopy = () => {
     if (promelaCode) {
-      navigator.clipboard.writeText(promelaCode);
+      navigator.clipboard.writeText(promelaCodeState);
       toast('Copied!', { description: 'Promela code copied to clipboard.' });
     } else {
       toast('Nothing to copy!', { description: 'No Promela code available.' });
     }
   };
 
-  const handleConvert = async () => {
-    if (!cCode.trim()) {
-      toast('Error', { description: 'Please enter C code to convert.' });
-      return;
-    }
-
-    console.log('Converting C code to Promela:', cCode);
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
-    setIsConverting(true);
-    setPromelaCode("");
-
-    try {
-      console.log('Sending request to /api/convert...');
-      const response = await fetch('/api/convert', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ cCode }),
-        signal: abortControllerRef.current.signal,
-      });
-
-      console.log('API response status:', response.status);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to convert C code');
-      }
-
-      const data = await response.json();
-      console.log('Received complete response');
-      setPromelaCode(data.promelaCode);
-      
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.log('Request aborted');
-        return;
-      }
-      console.error('Conversion error:', error);
-      toast('Error', {
-        description: error instanceof Error ? error.message : 'Failed to convert C code',
-      });
-    } finally {
-      console.log('Conversion process completed, isConverting set to false');
-      setIsConverting(false);
-      abortControllerRef.current = null;
-    }
-  };
-
   return (
     <div className="flex flex-col h-screen w-full">
-      <Header onCopy={handleCopy} onConvert={handleConvert} isConverting={isConverting}/>
+      <Header onCopy={handleCopy} onConvert={handleSubmit} isConverting={isLoading}/>
       <ResizablePanelGroup
         direction="horizontal"
         className="flex-1 rounded-lg border bg-card"
@@ -90,7 +72,7 @@ export default function CodeConverter() {
           <div className="h-full p-1">
             <div className="rounded-md overflow-hidden h-full">
               <Editor
-                value={cCode}
+                value={cCodeState}
                 onChange={handleCodeChange}
               />
             </div>
@@ -101,8 +83,7 @@ export default function CodeConverter() {
           <div className="h-full p-1">
             <div className="rounded-md overflow-hidden h-full">
               <OutputPanel
-                value={promelaCode}
-                isLoading={isConverting}
+                isLoading={isLoading}
               />
             </div>
           </div>
