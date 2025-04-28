@@ -33,7 +33,7 @@ export async function OpenRouterStream(payload: OpenRouterStreamPayload) {
     }
 
     const siteUrl = process.env.SITE_URL || "http://localhost:3000";
-    const siteName = process.env.SITE_NAME || "My Application";
+    const siteName = process.env.SITE_NAME || "C to Promela Converter";
 
     const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",

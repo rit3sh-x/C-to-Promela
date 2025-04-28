@@ -10,7 +10,7 @@ interface OutputPanelProps {
   isLoading?: boolean;
 }
 
-export default function OutputPanel({ isLoading = false }: OutputPanelProps) {
+export function OutputPanel({ isLoading = false }: OutputPanelProps) {
   const response = useRecoilValue(promelaCode);
   const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
@@ -111,15 +111,15 @@ export default function OutputPanel({ isLoading = false }: OutputPanelProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between border-b px-3 py-2 bg-muted/50">
+      <div className="flex items-center justify-between border-b border-neutral-800 px-3 py-2 bg-[#252525]">
         <div className="flex items-center space-x-2">
-          <h3 className="text-sm font-medium">Promela</h3>
+          <h3 className="text-sm font-medium text-neutral-200">Promela</h3>
           {isLoading && (
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
           )}
         </div>
       </div>
-      <div className="flex-1 rounded-b-lg overflow-hidden">
+      <div className="flex-1 rounded-b-lg overflow-hidden bg-[#1E1E1E] text-amber-50">
         <MonacoEditor
           height="100%"
           language="promela"

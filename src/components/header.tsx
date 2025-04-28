@@ -9,16 +9,17 @@ interface HeaderProps {
   isConverting?: boolean;
 }
 
-export default function Header({ onCopy, onConvert, isConverting = false }: HeaderProps) {
+export function Header({ onCopy, onConvert, isConverting = false }: HeaderProps) {
   return (
-    <header className="flex items-center justify-between px-4 py-3 border-b">
-      <h1 className="text-xl font-bold">C to Promela Converter</h1>
+    <header className="flex items-center justify-between px-4 py-3">
+      <h1 className="text-xl font-bold text-neutral-100">C to Promela Converter</h1>
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="sm"
           onClick={onCopy}
           disabled={isConverting}
+          className="cursor-pointer bg-neutral-700 text-white hover:bg-white hover:text-neutral-900 border-none"
         >
           <ClipboardCopy className="h-4 w-4" />
           Copy Output
@@ -27,11 +28,11 @@ export default function Header({ onCopy, onConvert, isConverting = false }: Head
           onClick={onConvert}
           disabled={isConverting}
           size="sm"
-          className='cursor-pointer'
+          className={`cursor-pointer bg-neutral-700 text-white hover:bg-white hover:text-neutral-900 ${isConverting ? 'opacity-50' : ''} border-none`}
         >
           {isConverting ? (
             <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"/>
               Converting...
             </>
           ) : (
@@ -41,7 +42,7 @@ export default function Header({ onCopy, onConvert, isConverting = false }: Head
             </>
           )}
         </Button>
-        <Button asChild variant="outline" size="default">
+        <Button asChild variant="outline" size="default" className="cursor-pointer bg-neutral-700 text-white hover:bg-white hover:text-neutral-900 border-none">
           <a href="https://github.com/rit3sh-x/C-to-Promela" target="_blank" rel="noopener noreferrer" >
             <Github className="h-4 w-4" />
             View Repository

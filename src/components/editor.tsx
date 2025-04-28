@@ -9,7 +9,7 @@ interface EditorProps {
   readOnly?: boolean;
 }
 
-export default function Editor({ value, onChange, readOnly = false }: EditorProps) {
+export function Editor({ value, onChange, readOnly = false }: EditorProps) {
   const [code, setCode] = useState<string>(value);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -43,13 +43,13 @@ export default function Editor({ value, onChange, readOnly = false }: EditorProp
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between border-b px-3 py-2 bg-muted/50">
+    <div className="flex flex-col h-full rounded-md overflow-clip bg-[#1e1e1e]">
+      <div className="flex items-center justify-between border-b border-neutral-800 px-3 py-2 bg-[#252525]">
         <div className="flex items-center space-x-2">
-          <h3 className="text-sm font-medium">C Code</h3>
+          <h3 className="text-sm font-medium text-neutral-200">C Code</h3>
         </div>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 text-amber-50">
         <MonacoEditor
           language="c"
           value={code}
@@ -57,6 +57,7 @@ export default function Editor({ value, onChange, readOnly = false }: EditorProp
           options={options}
           theme="vs-dark"
           className="h-full w-full"
+          loading="Loading..."
         />
       </div>
     </div>
