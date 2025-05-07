@@ -6,13 +6,14 @@ import { Header } from '@/components/header';
 import { OutputPanel } from '@/components/output-panel';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { toast } from 'sonner';
-import { useRecoilState } from 'recoil';
-import { promelaCode, cCode } from '@/utils/store';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { promelaCode, cCode, isLLM } from '@/utils/store';
 
 export function CodeConverter() {
   const [isLoading, setIsLoading] = useState(false);
   const [promelaCodeState, setPromelaCodeState] = useRecoilState(promelaCode);
   const [cCodeState, setCCodeState] = useRecoilState(cCode);
+  const isLLMState = useRecoilValue(isLLM);
 
   const handleCodeChange = (value: string | undefined) => {
     setCCodeState(value || '');
@@ -22,40 +23,63 @@ export function CodeConverter() {
     setIsLoading(true);
     setPromelaCodeState('');
 
-    const res = await fetch("/api/convert", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ prompt: cCodeState }),
-    });
+    const apiRoute = !isLLMState ? '/api/convert-v2' : '/api/convert';
 
-    if (!res.ok) throw new Error(res.statusText);
+    try {
+      const res = await fetch(apiRoute, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: cCodeState }),
+      });
 
-    const data = res.body;
-    if (!data) return;
-
-    const reader = data.getReader();
-    const decoder = new TextDecoder();
-    let done = false;
-    let accumulatedCode = '';
-
-    while (!done) {
-      const { value, done: doneReading } = await reader.read();
-      done = doneReading;
-      const chunkValue = decoder.decode(value, { stream: true });
-      const cleanedChunk = chunkValue
-        .replace(/```promela\n|```/g, '')
-        .replace(/^\s*promela\s*\n?/gm, '')
-        .replace(/^\s*\n/gm, '')
-        .replace(/\n{2,}/g, '\n');
-
-      if (cleanedChunk) {
-        accumulatedCode += cleanedChunk;
-        setPromelaCodeState(accumulatedCode);
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || res.statusText);
       }
+
+      if (!isLLMState) {
+        const data = await res.json();
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        const rawText = data.promela || '';
+        setPromelaCodeState(rawText);
+      } else {
+        const data = res.body;
+        if (!data) return;
+
+        const reader = data.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+        let accumulatedCode = '';
+
+        while (!done) {
+          const { value, done: doneReading } = await reader.read();
+          done = doneReading;
+          const chunkValue = decoder.decode(value, { stream: true });
+
+          if (chunkValue) {
+            accumulatedCode += chunkValue;
+            const cleanedCode = accumulatedCode
+              .replace(/```promela\n/gi, '')
+              .replace(/promela\n/gi, '')
+              .replace(/```/g, '')
+              .replace(/\n{2,}/g, '\n')
+              .replace(/<PROMELA_START>/gi, '')
+              .replace(/<PROMELA_END>/gi, '');
+            setPromelaCodeState(cleanedCode);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Conversion error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to convert code.';
+      toast('Error!', { description: errorMessage });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleCopy = () => {

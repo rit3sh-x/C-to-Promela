@@ -1,7 +1,9 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
-import { ClipboardCopy, Play, Github } from 'lucide-react';
+import { ClipboardCopy, Play, Github, Brain, Code2Icon } from 'lucide-react';
+import { useRecoilState } from 'recoil';
+import { isLLM } from '@/utils/store';
 
 interface HeaderProps {
   onConvert: () => void;
@@ -10,6 +12,7 @@ interface HeaderProps {
 }
 
 export function Header({ onCopy, onConvert, isConverting = false }: HeaderProps) {
+  const [isLLMState, setIsLLMState] = useRecoilState(isLLM);
   return (
     <header className="flex items-center justify-between px-4 py-3">
       <h1 className="text-xl font-bold text-neutral-100">C to Promela Converter</h1>
@@ -32,13 +35,31 @@ export function Header({ onCopy, onConvert, isConverting = false }: HeaderProps)
         >
           {isConverting ? (
             <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2"/>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
               Converting...
             </>
           ) : (
             <>
               <Play className="h-4 w-4" />
               Convert
+            </>
+          )}
+        </Button>
+        <Button
+          onClick={() => setIsLLMState(prev => !prev)}
+          size="sm"
+          variant="outline"
+          className="cursor-pointer bg-neutral-700 text-white hover:bg-white hover:text-neutral-900 border-none"
+        >
+          {isLLMState ? (
+            <>
+              <Brain className="h-4 w-4" />
+              LLM Mode
+            </>
+          ) : (
+            <>
+              <Code2Icon className="h-4 w-4" />
+              Regex Mode
             </>
           )}
         </Button>

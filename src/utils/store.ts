@@ -9,3 +9,8 @@ export const cCode = atom<string>({
     key: 'cCode',
     default: '',
 });
+
+export const isLLM = atom<boolean>({
+    key: 'isLLM',
+    default: false,
+})
