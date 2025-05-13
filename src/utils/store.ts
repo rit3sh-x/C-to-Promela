@@ -12,5 +12,5 @@ export const cCode = atom<string>({
 
 export const isLLM = atom<boolean>({
     key: 'isLLM',
-    default: false,
+    default: true,
 })

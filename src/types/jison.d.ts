@@ -12,10 +12,12 @@ declare module 'jison' {
     type LexRuleTuple = [LexRulePattern, LexRuleAction] | [LexRulePattern, LexRuleAction, LexRuleConditions];
 
     interface Lex {
-        rules: Array<string | LexRule | LexRuleTuple>;
+        rules: Array<LexRuleTuple>;
         macros?: Record<string, string>;
         startConditions?: Record<string, number | boolean>;
     }
+
+    type Operator = [string, ...string[]];
 
     type BNFProductionAction = string;
 
@@ -34,8 +36,9 @@ declare module 'jison' {
     }
 
     interface Grammar {
+        moduleInclude?: string;
         lex: Lex;
-        operators?: Array<[string, ...string[]]>;
+        operators?: Operator[];
         bnf: BNF;
         start?: string;
     }
@@ -67,11 +70,15 @@ declare module 'jison' {
         parseError?: (message: string, hash: ErrorHash) => void;
         lexer?: Lexer;
         parser?: Parser;
-        currentFunction?: string;
-        switchExpr?: string;
+        currentFunction?: string | null;
+        switchExpr?: string | null;
         loopDepth?: number;
         breakableDepth?: number;
+        indentStatements?: (statements: string) => string;
         trace?: (msg: string) => void;
+        userDefinedTypes?: Record<string, boolean>;
+        labelCount?: number;
+        anonStructCount?: number;
         [key: string]: any;
     }
 

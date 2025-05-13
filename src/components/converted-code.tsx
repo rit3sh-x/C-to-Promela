@@ -23,7 +23,7 @@ export function CodeConverter() {
     setIsLoading(true);
     setPromelaCodeState('');
 
-    const apiRoute = !isLLMState ? '/api/convert-v2' : '/api/convert';
+    const apiRoute = isLLMState ? '/api/convert-v1' : '/api/convert-v2';
 
     try {
       const res = await fetch(apiRoute, {
@@ -31,7 +31,7 @@ export function CodeConverter() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: cCodeState }),
+        body: JSON.stringify({ code: cCodeState }),
       });
 
       if (!res.ok) {
@@ -39,38 +39,29 @@ export function CodeConverter() {
         throw new Error(errorData.error || res.statusText);
       }
 
-      if (!isLLMState) {
-        const data = await res.json();
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        const rawText = data.promela || '';
-        setPromelaCodeState(rawText);
-      } else {
-        const data = res.body;
-        if (!data) return;
+      const data = res.body;
+      if (!data) return;
 
-        const reader = data.getReader();
-        const decoder = new TextDecoder();
-        let done = false;
-        let accumulatedCode = '';
+      const reader = data.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let accumulatedCode = '';
 
-        while (!done) {
-          const { value, done: doneReading } = await reader.read();
-          done = doneReading;
-          const chunkValue = decoder.decode(value, { stream: true });
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunkValue = decoder.decode(value, { stream: true });
 
-          if (chunkValue) {
-            accumulatedCode += chunkValue;
-            const cleanedCode = accumulatedCode
-              .replace(/```promela\n/gi, '')
-              .replace(/promela\n/gi, '')
-              .replace(/```/g, '')
-              .replace(/\n{2,}/g, '\n')
-              .replace(/<PROMELA_START>/gi, '')
-              .replace(/<PROMELA_END>/gi, '');
-            setPromelaCodeState(cleanedCode);
-          }
+        if (chunkValue) {
+          accumulatedCode += chunkValue;
+          const cleanedCode = accumulatedCode
+            .replace(/```promela\n/gi, '')
+            .replace(/promela\n/gi, '')
+            .replace(/```/g, '')
+            .replace(/\n{2,}/g, '\n')
+            .replace(/<PROMELA_START>/gi, '')
+            .replace(/<PROMELA_END>/gi, '');
+          setPromelaCodeState(cleanedCode);
         }
       }
     } catch (error) {

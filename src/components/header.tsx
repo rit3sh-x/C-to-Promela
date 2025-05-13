@@ -1,9 +1,9 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
-import { ClipboardCopy, Play, Github, Brain, Code2Icon } from 'lucide-react';
-import { useRecoilState } from 'recoil';
-import { isLLM } from '@/utils/store';
+import { ClipboardCopy, Play, Github, Brain, Code2Icon, Eraser } from 'lucide-react';
+import { useRecoilState, useSetRecoilState } from 'recoil';
+import { isLLM, promelaCode } from '@/utils/store';
 
 interface HeaderProps {
   onConvert: () => void;
@@ -13,10 +13,21 @@ interface HeaderProps {
 
 export function Header({ onCopy, onConvert, isConverting = false }: HeaderProps) {
   const [isLLMState, setIsLLMState] = useRecoilState(isLLM);
+  const setPromelaCodeState = useSetRecoilState(promelaCode);
   return (
     <header className="flex items-center justify-between px-4 py-3">
       <h1 className="text-xl font-bold text-neutral-100">C to Promela Converter</h1>
       <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPromelaCodeState('')}
+          disabled={isConverting}
+          className="cursor-pointer bg-neutral-700 text-white hover:bg-white hover:text-neutral-900 border-none"
+        >
+          <Eraser className="h-4 w-4" />
+          Clear
+        </Button>
         <Button
           variant="outline"
           size="sm"
